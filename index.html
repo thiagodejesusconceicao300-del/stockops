@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -374,6 +374,16 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
 .btn-wpp{background:linear-gradient(135deg,#25d366,#128c7e);border:none;border-radius:var(--r6);color:#fff;font-size:11px;font-weight:600;font-family:'Inter',sans-serif;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .12s;}
 .btn-wpp:hover{opacity:.88;}
 .btn-wpp svg{width:14px;height:14px;fill:#fff;flex-shrink:0;}
+
+/* ── PERMISSION CHECKBOXES ────────────────────────────────────── */
+.perm-item{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border:1px solid var(--b1);border-radius:var(--r6);cursor:pointer;transition:all .12s;background:var(--s2);}
+.perm-item:hover{border-color:var(--blue);background:var(--blue-a);}
+.perm-item.checked{border-color:var(--green);background:var(--green-a);}
+.perm-cb{width:16px;height:16px;border:2px solid var(--b3);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--s3);transition:all .12s;margin-top:1px;}
+.perm-item.checked .perm-cb{background:var(--green);border-color:var(--green);color:#fff;}
+.perm-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+.perm-label{font-size:11px;font-weight:500;color:var(--t1);line-height:1.3;}
+.perm-desc{font-size:9px;color:var(--t3);margin-top:2px;line-height:1.3;}
 
 /* ── USER CARDS ───────────────────────────────────────────────── */
 .user-card{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r8);padding:16px;display:flex;flex-direction:column;gap:10px;position:relative;transition:border-color .15s;}
@@ -1246,39 +1256,39 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
 
 <!-- MODAL CRIAR / EDITAR USUÁRIO -->
 <div class="overlay" id="overlay-user" onclick="if(event.target===this)closeUserModal()">
-  <div class="modal" style="width:440px;">
+  <div class="modal" style="width:520px;max-height:90vh;overflow-y:auto;">
     <div class="m-head">
       <div class="m-title" id="user-modal-title">＋ Novo Usuário</div>
       <button class="m-close" onclick="closeUserModal()">✕</button>
     </div>
 
-    <!-- Avatar / emoji escolhido automaticamente pelo nível -->
-    <div style="text-align:center;margin-bottom:16px;">
+    <!-- Avatar -->
+    <div style="text-align:center;margin-bottom:14px;">
       <div id="user-modal-avatar" style="width:52px;height:52px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--s3);border:2px solid var(--b2);">👤</div>
     </div>
 
+    <!-- Nome + Perfil base -->
     <div class="frow">
       <div class="fg">
         <label class="fl">Nome completo</label>
         <input class="fi2" id="um-nome" placeholder="Ex: João Silva" oninput="previewUserAvatar()">
       </div>
       <div class="fg">
-        <label class="fl">Nível de acesso</label>
-        <select class="fi2" id="um-role" onchange="previewUserAvatar()">
-          <option value="viewer">👁 Visualizador — só consulta</option>
-          <option value="usuario">👤 Operador — cria solicitações</option>
-          <option value="admin">👑 Administrador — acesso total</option>
+        <label class="fl">Perfil base</label>
+        <select class="fi2" id="um-role" onchange="onRoleChange()">
+          <option value="viewer">👁 Visualizador</option>
+          <option value="usuario">👤 Operador</option>
+          <option value="admin">👑 Administrador</option>
         </select>
       </div>
     </div>
 
+    <!-- Email + Senha -->
     <div class="fg">
-      <label class="fl">E-mail / login <span style="color:var(--t4);font-weight:400;">(usado para entrar no sistema)</span></label>
-      <input class="fi2" id="um-email" type="text" placeholder="joao@empresa.com ou apenas: joao"
-        oninput="um_email_touched=true">
-      <div class="fhint">Pode ser um e-mail Gmail ou qualquer texto (ex: joao, maria).</div>
+      <label class="fl">E-mail / login</label>
+      <input class="fi2" id="um-email" type="text" placeholder="joao@empresa.com ou apenas: joao">
+      <div class="fhint">Usado para entrar no sistema.</div>
     </div>
-
     <div class="frow">
       <div class="fg">
         <label class="fl">Senha <span id="um-senha-hint" style="color:var(--t4);font-weight:400;"></span></label>
@@ -1293,12 +1303,22 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
       </div>
     </div>
 
-    <div class="fhint" style="background:var(--s3);border-radius:6px;padding:8px 10px;margin-top:4px;">
-      <strong style="color:var(--t2);">Resumo do nível:</strong>
-      <span id="um-role-desc" style="color:var(--t3);">Apenas visualiza dados, sem alterar nada.</span>
+    <!-- PERMISSÕES GRANULARES -->
+    <div style="margin-top:8px;">
+      <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <span>⚙ Permissões detalhadas</span>
+        <div style="display:flex;gap:6px;">
+          <button onclick="marcarTodas(true)"  style="font-size:9px;padding:2px 8px;background:var(--green-a);border:1px solid rgba(45,184,122,.3);border-radius:4px;color:var(--green);cursor:pointer;">✓ Marcar todas</button>
+          <button onclick="marcarTodas(false)" style="font-size:9px;padding:2px 8px;background:var(--red-a);border:1px solid rgba(224,72,74,.3);border-radius:4px;color:var(--red);cursor:pointer;">✕ Desmarcar todas</button>
+        </div>
+      </div>
+
+      <div id="perm-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <!-- Gerado pelo JS -->
+      </div>
     </div>
 
-    <div class="m-foot">
+    <div class="m-foot" style="margin-top:14px;">
       <button class="mbtn mbtn-cancel" onclick="closeUserModal()">Cancelar</button>
       <button class="mbtn mbtn-ok" id="um-ok" onclick="salvarUsuario()">Criar usuário</button>
     </div>
@@ -3294,25 +3314,88 @@ function toggleUmSenha() { const i=document.getElementById('um-senha'); if(!i)re
 // ── Permissões ────────────────────────────────────────────────
 function aplicarPermissoes() {
   if (!CURRENT_USER) return;
-  const role=CURRENT_USER.role, isViewer=role==='viewer', isOp=role==='usuario';
-  document.querySelectorAll('.btn-edit,.btn-del,.btn-aprovar,.btn-rejeitar,.ac-btn.g,.ac-btn.r').forEach(b=>{b.disabled=false;b.style.opacity='';b.style.display='';b.style.pointerEvents='';});
-  document.querySelectorAll('.nav-btn.success,.nav-btn.danger').forEach(b=>{b.disabled=false;b.style.opacity='';b.style.pointerEvents='';});
+  const role=CURRENT_USER.role;
+  const isAdmin=role==='admin';
+
+  // Esconde itens da sidebar baseado em permissões
+  const sidebarMap = {
+    'page-dashboard':    'ver_dashboard',
+    'page-estoque':      'ver_estoque',
+    'page-validade':     'ver_validades',
+    'page-alertas':      'ver_alertas',
+    'page-mov':          'ver_mov',
+    'page-solicitacoes': 'ver_solicitacoes',
+    'page-pedido':       'ver_pedidos',
+    'page-relatorios':   'ver_relatorios',
+    'page-abc':          'ver_abc',
+    'page-previsao':     'ver_previsao',
+    'page-auditoria':    'ver_auditoria',
+    'page-usuarios':     'gerenciar_usuarios',
+  };
+
+  // Controla sidebar
+  document.querySelectorAll('.sb-item').forEach(btn => {
+    const onclick = btn.getAttribute('onclick') || '';
+    for (const [page, perm] of Object.entries(sidebarMap)) {
+      if (onclick.includes(page.replace('page-',''))) {
+        btn.style.display = temPermissao(perm) ? '' : 'none';
+        break;
+      }
+    }
+  });
+
+  // ── Reset botões de ação ──────────────────────────────────────
+  document.querySelectorAll('.btn-edit,.btn-del,.btn-aprovar,.btn-rejeitar,.ac-btn.g,.ac-btn.r').forEach(b=>{
+    b.disabled=false;b.style.opacity='';b.style.display='';b.style.pointerEvents='';
+  });
+  document.querySelectorAll('.nav-btn.success,.nav-btn.danger').forEach(b=>{
+    b.disabled=false;b.style.opacity='';b.style.pointerEvents='';
+  });
   document.querySelectorAll('[onclick="openEditModal(null)"]').forEach(b=>{b.style.display='';});
-  if (isViewer) {
-    document.querySelectorAll('.nav-btn.success,.nav-btn.danger').forEach(b=>{b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';});
-    document.querySelectorAll('.ac-btn.g,.ac-btn.r').forEach(b=>{b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';});
-    document.querySelectorAll('.btn-edit,.btn-del,.btn-aprovar,.btn-rejeitar').forEach(b=>{b.style.display='none';});
-    document.querySelectorAll('[onclick="openEditModal(null)"]').forEach(b=>{b.style.display='none';});
-    document.querySelectorAll('[onclick*="openSolicModal"]').forEach(b=>{b.style.display='none';});
-    document.querySelectorAll('[onclick="addToCart()"],[onclick="limparCarrinho()"]').forEach(b=>{b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';});
-    document.querySelectorAll('[onclick*="openWpp"]').forEach(b=>{b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';});
-    document.querySelectorAll('[onclick="exportarBackup()"]').forEach(b=>{b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';});
-    return;
+
+  // ── Registrar Entrada/Saída ───────────────────────────────────
+  if (!temPermissao('registrar_mov')) {
+    document.querySelectorAll('.nav-btn.success,.nav-btn.danger').forEach(b=>{
+      b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';
+    });
+    document.querySelectorAll('.ac-btn.g,.ac-btn.r').forEach(b=>{
+      b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';
+    });
+    document.querySelectorAll('.btn-edit').forEach(b=>{b.style.display='none';});
   }
-  if (isOp) {
+
+  // ── Excluir ───────────────────────────────────────────────────
+  if (!temPermissao('excluir_produtos')) {
     document.querySelectorAll('.btn-del').forEach(b=>{b.style.display='none';});
+  }
+
+  // ── Editar produtos ───────────────────────────────────────────
+  if (!temPermissao('editar_produtos')) {
+    document.querySelectorAll('.btn-edit').forEach(b=>{b.style.display='none';});
+    document.querySelectorAll('[onclick="openEditModal(null)"]').forEach(b=>{b.style.display='none';});
+  }
+
+  // ── Aprovar solicitações ──────────────────────────────────────
+  if (!temPermissao('aprovar_solic')) {
     document.querySelectorAll('.btn-aprovar,.btn-rejeitar').forEach(b=>{b.style.display='none';});
   }
+
+  // ── Criar solicitações ────────────────────────────────────────
+  if (!temPermissao('criar_solic')) {
+    document.querySelectorAll('[onclick*="openSolicModal"]').forEach(b=>{b.style.display='none';});
+  }
+
+  // ── Gerar pedido / WhatsApp ───────────────────────────────────
+  if (!temPermissao('gerar_pedido')) {
+    document.querySelectorAll('[onclick*="openWpp"],[onclick="addToCart()"],[onclick="limparCarrinho()"]').forEach(b=>{
+      b.disabled=true;b.style.opacity='.3';b.style.pointerEvents='none';
+    });
+  }
+
+  // ── Gerenciar usuários ────────────────────────────────────────
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=temPermissao('gerenciar_usuarios')?'':'none';
+  });
 }
 function podeEditar() { return CURRENT_USER&&(CURRENT_USER.role==='admin'||CURRENT_USER.role==='usuario'); }
 function podeAprovar() { return CURRENT_USER&&CURRENT_USER.role==='admin'; }
@@ -3332,9 +3415,46 @@ function restaurarSessao() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MÓDULO: GERENCIAR USUÁRIOS
 // ═══════════════════════════════════════════════════════════════
+// MÓDULO: GERENCIAR USUÁRIOS + PERMISSÕES GRANULARES
+// ═══════════════════════════════════════════════════════════════
+
+const TODAS_PERMISSOES = [
+  { id:'ver_dashboard',      icon:'📊', label:'Ver Dashboard',           desc:'KPIs, alertas e gráficos' },
+  { id:'ver_estoque',        icon:'📦', label:'Ver Estoque completo',     desc:'Tabela de todos os produtos' },
+  { id:'ver_validades',      icon:'📅', label:'Ver Validades',            desc:'Controle de datas de validade' },
+  { id:'ver_alertas',        icon:'🚨', label:'Ver Alertas',              desc:'Itens críticos e em alerta' },
+  { id:'ver_mov',            icon:'↕',  label:'Ver Movimentações',        desc:'Histórico de entradas e saídas' },
+  { id:'ver_solicitacoes',   icon:'📋', label:'Ver Solicitações',         desc:'Solicitações pendentes e histórico' },
+  { id:'ver_pedidos',        icon:'🛒', label:'Ver Pedidos de Compra',    desc:'Pedidos automáticos e manuais' },
+  { id:'ver_relatorios',     icon:'📈', label:'Ver Relatórios',           desc:'Relatórios e exportação CSV' },
+  { id:'ver_abc',            icon:'🏷', label:'Ver Análise ABC',          desc:'Classificação de produtos' },
+  { id:'ver_previsao',       icon:'🔮', label:'Ver Previsão de Compra',   desc:'Previsão e sugestões automáticas' },
+  { id:'registrar_mov',      icon:'✏',  label:'Registrar Entrada/Saída',  desc:'Movimentar estoque diretamente' },
+  { id:'criar_solic',        icon:'📝', label:'Criar Solicitações',       desc:'Solicitar entradas e saídas' },
+  { id:'aprovar_solic',      icon:'✅', label:'Aprovar Solicitações',     desc:'Aprovar ou rejeitar pedidos' },
+  { id:'editar_produtos',    icon:'🔧', label:'Editar Produtos',          desc:'Criar e editar cadastro de produtos' },
+  { id:'excluir_produtos',   icon:'🗑', label:'Excluir Produtos/Movs',    desc:'Remover produtos e movimentações' },
+  { id:'gerar_pedido',       icon:'📱', label:'Gerar Pedido / WhatsApp',  desc:'Criar pedidos e enviar via WhatsApp' },
+  { id:'ver_auditoria',      icon:'🔍', label:'Ver Auditoria',            desc:'Histórico completo de todas as ações' },
+  { id:'gerenciar_usuarios', icon:'👥', label:'Gerenciar Usuários',       desc:'Criar, editar e excluir usuários' },
+];
+
+const PERMS_PADRAO = {
+  admin:   TODAS_PERMISSOES.map(p => p.id),
+  usuario: ['ver_dashboard','ver_estoque','ver_validades','ver_alertas','ver_mov',
+            'ver_solicitacoes','ver_pedidos','registrar_mov','criar_solic','gerar_pedido'],
+  viewer:  ['ver_dashboard','ver_estoque','ver_validades','ver_alertas'],
+};
+
 let um_email_touched = false;
+
+function temPermissao(permId) {
+  if (!CURRENT_USER) return false;
+  if (CURRENT_USER.role === 'admin') return true;
+  const perms = CURRENT_USER.permissoes || PERMS_PADRAO[CURRENT_USER.role] || [];
+  return perms.includes(permId);
+}
 
 function renderUsuarios() {
   const grid=$('users-grid'); const count=$('users-count');
@@ -3345,16 +3465,20 @@ function renderUsuarios() {
   grid.innerHTML = USUARIOS.map(u=>{
     const isSelf=CURRENT_USER?.id===u.id;
     const isLast=USUARIOS.length===1;
+    const perms=u.permissoes||PERMS_PADRAO[u.role]||[];
     return `<div class="user-card ${isSelf?'user-card-self':''}">
       <div class="user-card-head">
         <div class="user-card-avatar" style="background:${rc[u.role]||'var(--s3)'};">${ROLE_EMOJI[u.role]||'👤'}</div>
         <div class="user-card-info">
-          <div class="user-card-nome">${u.nome}${isSelf?' <span class="user-self-tag">você</span>':'' }</div>
+          <div class="user-card-nome">${u.nome}${isSelf?' <span class="user-self-tag">você</span>':''}</div>
           <div class="user-card-email">${u.email}</div>
         </div>
         <span class="user-card-role-badge" style="background:${rc[u.role]};color:${rv[u.role]};">${ROLE_EMOJI[u.role]} ${ROLE_LABELS[u.role]}</span>
       </div>
-      <div style="font-size:10px;color:var(--t4);">Criado em: ${u.criadoEm||'—'}</div>
+      <div style="font-size:10px;color:var(--t4);">
+        Criado em: ${u.criadoEm||'—'} &nbsp;·&nbsp;
+        <span style="color:var(--blue);">${perms.length} permissão${perms.length!==1?'s':''} ativa${perms.length!==1?'s':''}</span>
+      </div>
       <div class="user-card-actions">
         <button class="btn-edit" onclick="openUserModal('${u.id}')">✏ Editar</button>
         ${!isSelf&&!isLast?`<button class="btn-del" onclick="excluirUsuario('${u.id}')">🗑 Excluir</button>`:''}
@@ -3370,6 +3494,7 @@ function openUserModal(id) {
   $('user-modal-title').textContent=isNew?'＋ Novo Usuário':'✏ Editar Usuário';
   $('um-ok').textContent=isNew?'Criar usuário':'Salvar alterações';
   $('um-senha-hint').textContent=isNew?'':' (deixe em branco para não alterar)';
+  let permsAtivas=PERMS_PADRAO['viewer'];
   if(isNew){
     $('um-nome').value=''; $('um-email').value=''; $('um-role').value='viewer';
     $('um-senha').value=''; $('um-senha2').value='';
@@ -3377,26 +3502,64 @@ function openUserModal(id) {
     const u=USUARIOS.find(x=>x.id===id); if(!u)return;
     $('um-nome').value=u.nome; $('um-email').value=u.email; $('um-role').value=u.role;
     $('um-senha').value=''; $('um-senha2').value='';
+    permsAtivas=u.permissoes||PERMS_PADRAO[u.role]||[];
   }
+  renderPermGrid(permsAtivas);
   previewUserAvatar();
   $('overlay-user').classList.add('open');
   setTimeout(()=>$('um-nome').focus(),80);
 }
+
 function closeUserModal(){$('overlay-user').classList.remove('open');_userEditId=null;}
+
+function renderPermGrid(permsAtivas) {
+  const grid=document.getElementById('perm-grid'); if(!grid)return;
+  grid.innerHTML=TODAS_PERMISSOES.map(p=>{
+    const on=permsAtivas.includes(p.id);
+    return `<div class="perm-item ${on?'checked':''}" onclick="togglePerm('${p.id}',this)" data-perm="${p.id}">
+      <div class="perm-cb">${on?'✓':''}</div>
+      <span class="perm-icon">${p.icon}</span>
+      <div><div class="perm-label">${p.label}</div><div class="perm-desc">${p.desc}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function togglePerm(id,el){
+  el.classList.toggle('checked');
+  const cb=el.querySelector('.perm-cb');
+  cb.textContent=el.classList.contains('checked')?'✓':'';
+}
+
+function marcarTodas(valor){
+  document.querySelectorAll('.perm-item').forEach(el=>{
+    const cb=el.querySelector('.perm-cb');
+    if(valor){el.classList.add('checked');cb.textContent='✓';}
+    else{el.classList.remove('checked');cb.textContent='';}
+  });
+}
+
+function getPermsSelected(){
+  return [...document.querySelectorAll('.perm-item.checked')].map(el=>el.dataset.perm);
+}
+
+function onRoleChange(){
+  const role=$('um-role')?.value||'viewer';
+  renderPermGrid(PERMS_PADRAO[role]||[]);
+  previewUserAvatar();
+}
 
 function previewUserAvatar(){
   const role=$('um-role')?.value||'viewer';
-  const av=$('user-modal-avatar'); const desc=$('um-role-desc');
+  const av=$('user-modal-avatar');
   const bg={admin:'rgba(224,72,74,.15)',usuario:'rgba(74,143,245,.15)',viewer:'rgba(45,184,122,.15)'};
   if(av){av.textContent=ROLE_EMOJI[role];av.style.background=bg[role]||'var(--s3)';}
-  if(desc)desc.textContent=ROLE_DESC[role]||'';
 }
 
 function salvarUsuario(){
   if(!podeAprovar()){toast('Acesso negado.','error');return;}
   const nome=$('um-nome').value.trim(); const email=$('um-email').value.trim();
   const role=$('um-role').value; const senha=$('um-senha').value; const senha2=$('um-senha2').value;
-  const isNew=_userEditId===null;
+  const isNew=_userEditId===null; const permissoes=getPermsSelected();
   if(!nome){toast('Informe o nome.','error');$('um-nome').focus();return;}
   if(!email){toast('Informe o login ou e-mail.','error');$('um-email').focus();return;}
   const dup=USUARIOS.find(x=>x.email.toLowerCase()===email.toLowerCase()&&x.id!==_userEditId);
@@ -3406,9 +3569,9 @@ function salvarUsuario(){
     if(senha.length<4){toast('Senha deve ter ao menos 4 caracteres.','error');return;}
     if(senha!==senha2){toast('As senhas não coincidem.','error');$('um-senha2').focus();return;}
     const novoId='u_'+Date.now();
-    USUARIOS.push({id:novoId,nome,email,role,_hash:senha,criadoEm:new Date().toLocaleDateString('pt-BR')});
-    registrarAudit('sistema',`Usuário criado: ${nome}`,`Login: ${email} | Nível: ${ROLE_LABELS[role]}`,'👥');
-    toast(`Usuário "${nome}" criado!`,'success');
+    USUARIOS.push({id:novoId,nome,email,role,_hash:senha,permissoes,criadoEm:new Date().toLocaleDateString('pt-BR')});
+    registrarAudit('sistema',`Usuário criado: ${nome}`,`Login: ${email} | ${permissoes.length} permissões`,'👥');
+    toast(`Usuário "${nome}" criado com ${permissoes.length} permissões!`,'success');
   } else {
     const u=USUARIOS.find(x=>x.id===_userEditId); if(!u)return;
     if(senha){
@@ -3416,18 +3579,16 @@ function salvarUsuario(){
       if(senha!==senha2){toast('As senhas não coincidem.','error');return;}
       u._hash=senha;
     }
-    const antigas=u.nome; u.nome=nome; u.email=email; u.role=role;
+    const antigas=u.nome; u.nome=nome; u.email=email; u.role=role; u.permissoes=permissoes;
     if(CURRENT_USER?.id===_userEditId){
       CURRENT_USER=u;
       const ubN=$('ub-name'); if(ubN)ubN.textContent=nome;
       const ubR=$('ub-role'); if(ubR)ubR.textContent=ROLE_LABELS[role];
     }
-    registrarAudit('sistema',`Usuário editado: ${antigas}`,`Novo nome: ${nome} | Nível: ${ROLE_LABELS[role]}`,'✏');
+    registrarAudit('sistema',`Usuário editado: ${antigas}`,`Nível: ${ROLE_LABELS[role]} | ${permissoes.length} permissões`,'✏');
     toast(`Usuário "${nome}" atualizado!`,'success');
   }
-  salvarUsuariosLS();
-  closeUserModal();
-  renderUsuarios();
+  salvarUsuariosLS(); closeUserModal(); renderUsuarios();
 }
 
 function excluirUsuario(id){
@@ -3437,7 +3598,7 @@ function excluirUsuario(id){
   if(!confirm(`Excluir o usuário "${u.nome}"?\nEsta ação não pode ser desfeita.`))return;
   USUARIOS=USUARIOS.filter(x=>x.id!==id);
   salvarUsuariosLS();
-  registrarAudit('sistema',`Usuário excluído: ${u.nome}`,`Login: ${u.email} | Nível: ${ROLE_LABELS[u.role]}`,'🗑');
+  registrarAudit('sistema',`Usuário excluído: ${u.nome}`,`Login: ${u.email}`,'🗑');
   renderUsuarios();
   toast(`Usuário "${u.nome}" excluído.`,'success');
 }
