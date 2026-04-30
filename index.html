@@ -916,32 +916,48 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
             <button class="nav-btn danger"  style="font-size:12px;padding:6px 14px;" onclick="openSolicModal('saida')">－ Pedir Saída de produto</button>
           </div>
         </div>
-        <!-- Explicação rápida -->
-        <div style="padding:8px 14px;flex-shrink:0;background:var(--purple-a);border-bottom:1px solid rgba(155,113,232,.15);">
+        <!-- Explicação -->
+        <div style="padding:6px 14px;flex-shrink:0;background:var(--purple-a);border-bottom:1px solid rgba(155,113,232,.15);">
           <span style="font-size:11px;color:var(--purple);">
-            💡 <b>Como funciona:</b> Você solicita a entrada ou saída de um produto → o estoque <b>não muda ainda</b> → o administrador aprova ou rejeita → aí sim o estoque é atualizado.
+            💡 <b>Como funciona:</b> Solicite entrada ou saída → estoque <b>não muda ainda</b> → admin aprova/rejeita → aí o estoque é atualizado.
           </span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;overflow:hidden;padding:10px 14px;">
+        <!-- ABAS -->
+        <div class="ped-tabs" style="flex-shrink:0;">
+          <button class="ped-tab active" id="stab-pend"   onclick="switchSolicTab('pend')">⏳ Pendentes <span id="stab-pend-count" style="background:var(--purple);color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;">0</span></button>
+          <button class="ped-tab" id="stab-aprov"  onclick="switchSolicTab('aprov')">✅ Aprovadas</button>
+          <button class="ped-tab" id="stab-rejeit" onclick="switchSolicTab('rejeit')">❌ Rejeitadas</button>
+          <button class="ped-tab" id="stab-todas"  onclick="switchSolicTab('todas')">📁 Histórico completo</button>
+        </div>
+        <!-- Conteúdo das abas -->
+        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
           <!-- Pendentes -->
-          <div class="panel" style="overflow:hidden;display:flex;flex-direction:column;">
-            <div class="ph" style="border-left:3px solid var(--purple);padding-left:9px;flex-shrink:0;">
-              <span class="ph-title" style="color:var(--purple);">⏳ Aguardando aprovação</span>
-              <span class="ph-sub" id="solic-pend-count"></span>
-            </div>
-            <div style="flex:1;overflow-y:auto;padding:8px;" id="solic-pend-list">
-              <div style="text-align:center;color:var(--t3);padding:24px;font-size:11px;">✓ Nenhuma solicitação pendente.</div>
-            </div>
+          <div id="stab-panel-pend" style="flex:1;overflow-y:auto;padding:10px 14px;" >
+            <div id="solic-pend-list"><div style="text-align:center;color:var(--t3);padding:32px;font-size:11px;">✓ Nenhuma solicitação pendente.</div></div>
           </div>
-          <!-- Histórico -->
-          <div class="panel" style="overflow:hidden;display:flex;flex-direction:column;">
-            <div class="ph" style="border-left:3px solid var(--t4);padding-left:9px;flex-shrink:0;">
-              <span class="ph-title">📁 Histórico de solicitações</span>
-              <span class="ph-sub" id="solic-hist-count"></span>
-            </div>
+          <!-- Aprovadas -->
+          <div id="stab-panel-aprov" style="display:none;flex:1;overflow:hidden;">
             <div class="tbl-wrap" style="flex:1;">
               <table>
                 <thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th style="text-align:center;">Qtd</th><th>Solicitante</th><th>Status</th></tr></thead>
+                <tbody id="solic-aprov-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Rejeitadas -->
+          <div id="stab-panel-rejeit" style="display:none;flex:1;overflow:hidden;">
+            <div class="tbl-wrap" style="flex:1;">
+              <table>
+                <thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th style="text-align:center;">Qtd</th><th>Solicitante</th><th>Status</th></tr></thead>
+                <tbody id="solic-rejeit-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Histórico completo -->
+          <div id="stab-panel-todas" style="display:none;flex:1;overflow:hidden;">
+            <div class="tbl-wrap" style="flex:1;">
+              <table>
+                <thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th style="text-align:center;">Qtd</th><th>Solicitante</th><th>Obs</th><th>Status</th></tr></thead>
                 <tbody id="solic-hist-tbody"></tbody>
               </table>
             </div>
@@ -1191,18 +1207,23 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
         <div class="ph" style="flex-shrink:0;padding:10px 14px;">
           <span class="ph-title">📊 Relatórios Automáticos</span>
           <div class="ph-right">
-            <button class="btn-export" onclick="exportarRelatorioCSV('todos')">⬇ Exportar tudo (CSV)</button>
+            <select class="fi" id="rep-forn-filter" onchange="renderRelatorios()" style="width:160px;">
+              <option value="">Todos os fornecedores</option>
+              <option value="MIMAKI Brasil">MIMAKI Brasil</option>
+              <option value="Roland">Roland</option>
+            </select>
+            <button class="btn-export" onclick="exportarRelatorioCSV('todos')">⬇ Exportar CSV</button>
           </div>
         </div>
         <div class="report-grid">
 
-          <!-- Consumo mensal por produto -->
+          <!-- Duração estimada em estoque -->
           <div class="report-card">
             <div class="report-head">
-              <span class="report-title">🔥 Top produtos por consumo (un/mês)</span>
-              <button class="btn-export" onclick="exportarRelatorioCSV('consumo')">⬇ CSV</button>
+              <span class="report-title">⏱ Tempo de duração em estoque</span>
+              <button class="btn-export" onclick="exportarRelatorioCSV('duracao')">⬇ CSV</button>
             </div>
-            <div class="report-body" id="rep-consumo"></div>
+            <div class="report-body" id="rep-duracao"></div>
           </div>
 
           <!-- Valor por categoria -->
@@ -1214,22 +1235,22 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
             <div class="report-body" id="rep-categoria"></div>
           </div>
 
-          <!-- Gasto por fornecedor -->
+          <!-- Itens críticos melhorado -->
           <div class="report-card">
             <div class="report-head">
-              <span class="report-title">🏭 Valor de estoque por fornecedor</span>
-              <button class="btn-export" onclick="exportarRelatorioCSV('fornecedor')">⬇ CSV</button>
-            </div>
-            <div class="report-body" id="rep-fornecedor"></div>
-          </div>
-
-          <!-- Itens críticos e em alerta -->
-          <div class="report-card">
-            <div class="report-head">
-              <span class="report-title">⚠ Itens abaixo do mínimo</span>
+              <span class="report-title">⚠ Itens que precisam de reposição</span>
               <button class="btn-export" onclick="exportarRelatorioCSV('criticos')">⬇ CSV</button>
             </div>
             <div class="report-body" id="rep-criticos"></div>
+          </div>
+
+          <!-- Consumo registrado -->
+          <div class="report-card">
+            <div class="report-head">
+              <span class="report-title">📈 Consumo mensal estimado</span>
+              <span style="font-size:10px;color:var(--t4);">baseado nas movimentações</span>
+            </div>
+            <div class="report-body" id="rep-consumo"></div>
           </div>
 
         </div>
@@ -1334,8 +1355,13 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
     </div>
     <div class="stock-preview" id="m-preview" style="display:none;"></div>
     <div class="fg">
-      <label class="fl">Produto</label>
-      <select class="fi2" id="m-prod" onchange="onProdSelect()"><option value="">Selecione...</option></select>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <label class="fl" style="margin:0;">Produto</label>
+        <button type="button" onclick="abrirCadastroRapido()" style="font-size:10px;background:var(--blue-a);border:1px solid rgba(74,143,245,.3);border-radius:4px;color:var(--blue);padding:2px 8px;cursor:pointer;font-family:'Inter',sans-serif;">
+          ＋ Produto não está na lista? Cadastrar agora
+        </button>
+      </div>
+      <select class="fi2" id="m-prod" onchange="onProdSelect()"><option value="">Selecione o produto...</option></select>
     </div>
     <div class="frow">
       <div class="fg">
@@ -1402,22 +1428,47 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
 
 <!-- MODAL DE SOLICITAÇÃO -->
 <div class="overlay" id="overlay-solic" onclick="if(event.target===this)closeSolicModal()">
-  <div class="modal" style="width:440px;">
+  <div class="modal" style="width:460px;">
     <div class="m-head">
       <div class="m-title" id="solic-title">📋 Solicitar Entrada</div>
       <button class="m-close" onclick="closeSolicModal()">✕</button>
     </div>
-    <div style="background:var(--purple-a);border:1px solid rgba(155,113,232,.2);border-radius:var(--r6);padding:8px 12px;font-size:11px;color:var(--purple);margin-bottom:14px;">
-      ℹ Esta solicitação ficará pendente até ser aprovada por um responsável. O estoque <strong>não</strong> será alterado agora.
+    <div style="background:var(--purple-a);border:1px solid rgba(155,113,232,.2);border-radius:var(--r6);padding:8px 12px;font-size:11px;color:var(--purple);margin-bottom:12px;">
+      ℹ Esta solicitação ficará pendente até ser aprovada. O estoque <strong>não</strong> será alterado agora.
     </div>
-    <div class="fg">
-      <label class="fl">Produto</label>
-      <select class="fi2" id="solic-prod" onchange="onSolicProdSelect()"><option value="">Selecione...</option></select>
+    <!-- Modo: produto cadastrado ou livre -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button id="solic-modo-lista" onclick="setSolicModo('lista')"
+        style="flex:1;padding:7px;border-radius:var(--r6);border:2px solid var(--purple);background:var(--purple-a);color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">
+        📦 Produto do estoque
+      </button>
+      <button id="solic-modo-livre" onclick="setSolicModo('livre')"
+        style="flex:1;padding:7px;border-radius:var(--r6);border:2px solid var(--b2);background:var(--s3);color:var(--t3);font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+        ✏ Produto não cadastrado
+      </button>
     </div>
-    <div class="stock-preview" id="solic-preview" style="display:none;"></div>
+    <!-- Produto do sistema -->
+    <div id="solic-campo-lista">
+      <div class="fg">
+        <label class="fl">Produto</label>
+        <select class="fi2" id="solic-prod" onchange="onSolicProdSelect()"><option value="">Selecione o produto...</option></select>
+      </div>
+      <div class="stock-preview" id="solic-preview" style="display:none;"></div>
+    </div>
+    <!-- Produto livre -->
+    <div id="solic-campo-livre" style="display:none;">
+      <div class="fg">
+        <label class="fl">Nome do produto</label>
+        <input class="fi2" id="solic-prod-livre" placeholder="Ex: Tinta Spray Prata 400ml">
+      </div>
+      <div class="fg">
+        <label class="fl">Fornecedor (opcional)</label>
+        <input class="fi2" id="solic-forn-livre" placeholder="Ex: MIMAKI Brasil, Roland...">
+      </div>
+    </div>
     <div class="frow">
       <div class="fg">
-        <label class="fl">Quantidade solicitada</label>
+        <label class="fl">Quantidade</label>
         <input class="fi2" id="solic-qty" type="number" min="1" placeholder="0">
       </div>
       <div class="fg">
@@ -1426,7 +1477,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
       </div>
     </div>
     <div class="fg">
-      <label class="fl">Justificativa</label>
+      <label class="fl">Justificativa / Observação</label>
       <input class="fi2" id="solic-obs" placeholder="Motivo da solicitação (opcional)">
     </div>
     <div class="m-foot">
@@ -2211,6 +2262,14 @@ function onProdSelect(){
   if(p.custo){ $('m-custo').value=p.custo; $('m-custo-hint').textContent='Último custo: '+R(p.custo); }
 }
 function closeModal(){ $('overlay').classList.remove('open'); }
+
+function abrirCadastroRapido() {
+  const tipoAtual = modalTipo;
+  closeModal();
+  openEditModal(null);
+  window._voltarParaMov = tipoAtual;
+  toast('Cadastre o produto — depois abra Entrada/Saída novamente.', 'success');
+}
 function confirmar(){
   if(!podeEditar()){ toast('Acesso negado.','error'); return; }
   const cod=$('m-prod').value, qty=parseInt($('m-qty').value)||0;
@@ -2393,7 +2452,21 @@ function salvarProduto() {
   closeEditModal();
   populateFornSelect();
   renderAll();
-  if (currentPage !== 'estoque') showPage('estoque');
+  // Se veio do cadastro rápido dentro do modal de entrada/saída
+  if (window._voltarParaMov) {
+    const tipo = window._voltarParaMov;
+    window._voltarParaMov = null;
+    setTimeout(() => {
+      openModal(tipo);
+      // Pré-seleciona o produto recém-cadastrado
+      setTimeout(() => {
+        const sel = document.getElementById('m-prod');
+        if (sel) { sel.value = cod; sel.dispatchEvent(new Event('change')); }
+      }, 100);
+    }, 200);
+  } else if (currentPage !== 'estoque') {
+    showPage('estoque');
+  }
 }
 
 function confirmDelete(cod) {
@@ -2498,6 +2571,7 @@ function deletarMov(idx) {
 
 function openSolicModal(tipo) {
   _solicTipo = tipo;
+  _solicModo = 'lista';
   document.getElementById('solic-title').textContent =
     tipo === 'entrada' ? '📋 Solicitar Entrada' : '📋 Solicitar Saída';
   document.getElementById('solic-prod').innerHTML =
@@ -2507,8 +2581,13 @@ function openSolicModal(tipo) {
   document.getElementById('solic-resp').value = CURRENT_USER ? CURRENT_USER.nome : '';
   document.getElementById('solic-obs').value = '';
   document.getElementById('solic-preview').style.display = 'none';
+  // Reseta modo para lista
+  document.getElementById('solic-campo-lista').style.display = '';
+  document.getElementById('solic-campo-livre').style.display = 'none';
+  if (document.getElementById('solic-prod-livre')) document.getElementById('solic-prod-livre').value = '';
+  if (document.getElementById('solic-forn-livre')) document.getElementById('solic-forn-livre').value = '';
+  setSolicModo('lista');
   document.getElementById('overlay-solic').classList.add('open');
-  setTimeout(() => document.getElementById('solic-prod').focus(), 80);
 }
 
 function onSolicProdSelect() {
@@ -2525,33 +2604,47 @@ function closeSolicModal() {
 
 function confirmarSolicitacao() {
   if(!podeEditar()){ toast('Acesso negado: Visualizador não pode criar solicitações.','error'); return; }
-  const cod  = document.getElementById('solic-prod').value;
   const qty  = parseInt(document.getElementById('solic-qty').value) || 0;
   const resp = document.getElementById('solic-resp').value.trim();
   const obs  = document.getElementById('solic-obs').value.trim();
-  if (!cod) { toast('Selecione um produto', 'error'); return; }
   if (qty <= 0) { toast('Informe uma quantidade válida', 'error'); return; }
   if (!resp) { toast('Informe o solicitante', 'error'); return; }
-  const p = P.find(x => x.cod === cod);
-  if (!p) return;
+
+  let cod, nome, livre = false;
+
+  if (_solicModo === 'lista') {
+    cod = document.getElementById('solic-prod').value;
+    if (!cod) { toast('Selecione um produto', 'error'); return; }
+    const p = P.find(x => x.cod === cod);
+    if (!p) return;
+    nome = p.nome;
+  } else {
+    nome = (document.getElementById('solic-prod-livre')?.value || '').trim();
+    if (!nome) { toast('Informe o nome do produto', 'error'); document.getElementById('solic-prod-livre')?.focus(); return; }
+    const fornLivre = (document.getElementById('solic-forn-livre')?.value || '').trim();
+    cod = 'LIVRE';
+    nome = nome + (fornLivre ? ` (${fornLivre})` : '');
+    livre = true;
+  }
+
   const agora = new Date();
   SOLIC.push({
     id: _solicIdCounter++,
-    cod, nome: p.nome,
+    cod, nome, livre,
     tipo: _solicTipo === 'entrada' ? 'ENTRADA' : 'SAÍDA',
     qty, resp, obs,
     data: agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
     status: 'pendente'
   });
-  registrarAudit('solic', `Solicitação de ${_solicTipo==='entrada'?'entrada':'saída'}: ${p.nome}`,
-    `Qtd: ${qty} | Solicitante: ${resp}${obs?' | '+obs:''}`, '📋');
+  registrarAudit('solic', `Solicitação de ${_solicTipo}: ${nome}`,
+    `Qtd: ${qty} | Solicitante: ${resp}${obs?' | '+obs:''}${livre?' | [produto livre]':''}`, '📋');
   if (typeof fbSalvarSolic === 'function') fbSalvarSolic(SOLIC[SOLIC.length-1]);
   closeSolicModal();
   renderSolicBadge();
   renderSolicitacoes();
   toast(`Solicitação enviada! Aguardando aprovação.`, 'success');
-  pushNotif('solic', `Solicitação de ${_solicTipo==='entrada'?'entrada':'saída'} enviada`,
-    `${qty} un de "${p.nome}" — aguardando aprovação`, '📋', 'ni-solic');
+  pushNotif('solic', `Solicitação de ${_solicTipo}: ${nome}`,
+    `${qty} un · ${resp}`, '📋', 'ni-solic');
 }
 
 function aprovarSolic(id) {
@@ -2614,49 +2707,109 @@ function renderSolicBadge() {
   }
 }
 
-function renderSolicitacoes() {
-  const pend = SOLIC.filter(s => s.status === 'pendente');
-  const hist = SOLIC.filter(s => s.status !== 'pendente').reverse();
-  $('solic-count-label').textContent = SOLIC.length + ' solicitações';
-  $('solic-pend-count').textContent = pend.length + ' pendentes';
-  $('solic-hist-count').textContent = hist.length + ' registros';
+let _solicModo = 'lista'; // 'lista' ou 'livre'
+let _solicTab  = 'pend';
 
-  // Pendentes
-  const pendEl = $('solic-pend-list');
-  if (!pend.length) {
-    pendEl.innerHTML = `<div style="text-align:center;color:var(--t3);padding:24px;font-size:11px;">✓ Nenhuma solicitação pendente.</div>`;
+function setSolicModo(modo) {
+  _solicModo = modo;
+  const btnLista = document.getElementById('solic-modo-lista');
+  const btnLivre = document.getElementById('solic-modo-livre');
+  const campoLista = document.getElementById('solic-campo-lista');
+  const campoLivre = document.getElementById('solic-campo-livre');
+  if (modo === 'lista') {
+    btnLista.style.cssText += ';border-color:var(--purple);background:var(--purple-a);color:var(--purple);font-weight:600;';
+    btnLivre.style.cssText += ';border-color:var(--b2);background:var(--s3);color:var(--t3);font-weight:500;';
+    campoLista.style.display = ''; campoLivre.style.display = 'none';
   } else {
-    pendEl.innerHTML = pend.map(s => {
-      const isE = s.tipo === 'ENTRADA';
-      return `<div class="solic-card">
-        <div class="solic-info">
-          <div class="solic-nome">${s.nome}</div>
-          <div class="solic-meta">#${s.id} · ${s.cod} · ${s.data} · <em>${s.resp}</em>${s.obs ? ' · '+s.obs : ''}</div>
-        </div>
-        <div class="solic-qty ${isE?'solic-tipo-e':'solic-tipo-s'}">${isE?'+':'-'}${s.qty}</div>
-        <span class="badge ${isE?'b-ok':'b-crit'}" style="flex-shrink:0;">${s.tipo}</span>
-        <div class="solic-actions">
-          <button class="btn-aprovar" onclick="aprovarSolic(${s.id})">✓ Aprovar</button>
-          <button class="btn-rejeitar" onclick="rejeitarSolic(${s.id})">✕ Rejeitar</button>
-        </div>
-      </div>`;
-    }).join('');
+    btnLivre.style.cssText += ';border-color:var(--purple);background:var(--purple-a);color:var(--purple);font-weight:600;';
+    btnLista.style.cssText += ';border-color:var(--b2);background:var(--s3);color:var(--t3);font-weight:500;';
+    campoLista.style.display = 'none'; campoLivre.style.display = '';
+    setTimeout(() => document.getElementById('solic-prod-livre')?.focus(), 80);
+  }
+}
+
+function switchSolicTab(tab) {
+  _solicTab = tab;
+  ['pend','aprov','rejeit','todas'].forEach(t => {
+    const btn = document.getElementById('stab-'+t);
+    const panel = document.getElementById('stab-panel-'+t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
+  });
+}
+
+function renderSolicitacoes() {
+  const pend   = SOLIC.filter(s => s.status === 'pendente');
+  const aprov  = SOLIC.filter(s => s.status === 'aprovado').reverse();
+  const rejeit = SOLIC.filter(s => s.status === 'rejeitado').reverse();
+  const todas  = [...SOLIC].reverse();
+
+  // Atualiza label e badge
+  if ($('solic-count-label')) $('solic-count-label').textContent = SOLIC.length + ' total';
+  const pendCount = document.getElementById('stab-pend-count');
+  if (pendCount) { pendCount.textContent = pend.length; pendCount.style.display = pend.length ? '' : 'none'; }
+
+  // ── Pendentes ─────────────────────────────────────────────────
+  const pendEl = $('solic-pend-list');
+  if (pendEl) {
+    if (!pend.length) {
+      pendEl.innerHTML = `<div style="text-align:center;color:var(--t3);padding:32px;font-size:11px;">
+        <div style="font-size:28px;margin-bottom:8px;">✓</div>Nenhuma solicitação pendente.</div>`;
+    } else {
+      pendEl.innerHTML = pend.map(s => {
+        const isE = s.tipo === 'ENTRADA';
+        const isLivre = s.livre;
+        return `<div class="solic-card">
+          <div class="solic-info">
+            <div class="solic-nome">${s.nome}${isLivre?' <span style="font-size:9px;background:var(--orange-a);color:var(--orange);padding:1px 5px;border-radius:3px;">livre</span>':''}</div>
+            <div class="solic-meta">#${s.id} · ${s.data} · <em>${s.resp}</em>${s.obs?' · '+s.obs:''}</div>
+          </div>
+          <div class="solic-qty ${isE?'solic-tipo-e':'solic-tipo-s'}">${isE?'+':'-'}${s.qty}</div>
+          <span class="badge ${isE?'b-ok':'b-crit'}" style="flex-shrink:0;">${s.tipo}</span>
+          <div class="solic-actions">
+            <button class="btn-aprovar" onclick="aprovarSolic(${s.id})">✓ Aprovar</button>
+            <button class="btn-rejeitar" onclick="rejeitarSolic(${s.id})">✕ Rejeitar</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
   }
 
-  // Histórico
-  $('solic-hist-tbody').innerHTML = hist.length
-    ? hist.map(s => {
+  // ── Helper tabela ─────────────────────────────────────────────
+  const rowsSolic = (arr) => arr.length
+    ? arr.map(s => {
         const isAp = s.status === 'aprovado';
+        const isE  = s.tipo === 'ENTRADA';
         return `<tr>
           <td class="mono" style="font-size:10px;color:var(--t3);">${s.data}</td>
-          <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;">${s.nome}</td>
-          <td><span class="badge ${s.tipo==='ENTRADA'?'b-ok':'b-crit'}">${s.tipo}</span></td>
-          <td style="text-align:center;font-weight:700;color:${s.tipo==='ENTRADA'?'var(--green)':'var(--red)'};">${s.tipo==='ENTRADA'?'+':'-'}${s.qty}</td>
+          <td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${s.nome}${s.livre?' <span style="font-size:9px;color:var(--orange);">(livre)</span>':''}</td>
+          <td><span class="badge ${isE?'b-ok':'b-crit'}">${s.tipo}</span></td>
+          <td style="text-align:center;font-weight:700;color:${isE?'var(--green)':'var(--red)'};">${isE?'+':'-'}${s.qty}</td>
           <td style="color:var(--t3);">${s.resp}</td>
           <td><span class="badge ${isAp?'b-ok':'b-crit'}">${isAp?'✓ Aprovado':'✕ Rejeitado'}</span></td>
         </tr>`;
       }).join('')
-    : `<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:16px;">Nenhum histórico ainda.</td></tr>`;
+    : `<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:16px;">Nenhum registro.</td></tr>`;
+
+  const rowsTodas = (arr) => arr.length
+    ? arr.map(s => {
+        const cor = s.status==='aprovado'?'b-ok':s.status==='rejeitado'?'b-crit':'b-warn';
+        const label = s.status==='aprovado'?'✓ Aprovado':s.status==='rejeitado'?'✕ Rejeitado':'⏳ Pendente';
+        return `<tr>
+          <td class="mono" style="font-size:10px;color:var(--t3);">${s.data}</td>
+          <td style="font-weight:500;">${s.nome}</td>
+          <td><span class="badge ${s.tipo==='ENTRADA'?'b-ok':'b-crit'}">${s.tipo}</span></td>
+          <td style="text-align:center;font-weight:700;">${s.qty}</td>
+          <td style="color:var(--t3);">${s.resp}</td>
+          <td style="color:var(--t3);font-size:11px;">${s.obs||'—'}</td>
+          <td><span class="badge ${cor}">${label}</span></td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:16px;">Nenhum registro.</td></tr>`;
+
+  if ($('solic-aprov-tbody'))  $('solic-aprov-tbody').innerHTML  = rowsSolic(aprov);
+  if ($('solic-rejeit-tbody')) $('solic-rejeit-tbody').innerHTML = rowsSolic(rejeit);
+  if ($('solic-hist-tbody'))   $('solic-hist-tbody').innerHTML   = rowsTodas(todas);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3704,97 +3857,122 @@ function exportarAuditCSV() {
 // MÓDULO: RELATÓRIOS AUTOMÁTICOS
 // ═══════════════════════════════════════════════════════════════
 function renderRelatorios() {
-  renderRepConsumo();
-  renderRepCategoria();
-  renderRepFornecedor();
-  renderRepCriticos();
+  const filtroForn = document.getElementById('rep-forn-filter')?.value || '';
+  const prodsFiltrados = filtroForn ? P.filter(p => p.forn === filtroForn) : P;
+  renderRepDuracao(prodsFiltrados);
+  renderRepCategoria(prodsFiltrados);
+  renderRepCriticos(prodsFiltrados);
+  renderRepConsumo(prodsFiltrados);
 }
 
-function renderRepConsumo() {
-  const el = $('rep-consumo'); if (!el) return;
-  const sorted = [...P].filter(p=>p.consumo>0).sort((a,b)=>b.consumo-a.consumo).slice(0,15);
-  const max = sorted[0]?.consumo || 1;
-  el.innerHTML = sorted.map((p,i) => `
-    <div class="report-row">
-      <div class="report-rank">${i+1}</div>
+function renderRepDuracao(prods) {
+  const el = $('rep-duracao'); if (!el) return;
+  const sorted = prods.filter(p => p.consumo > 0 && p.estoque > 0)
+    .map(p => ({ ...p, dias: Math.round((p.estoque / p.consumo) * 30) }))
+    .sort((a,b) => a.dias - b.dias);
+  if (!sorted.length) { el.innerHTML = '<div style="padding:16px;color:var(--t3);text-align:center;">Sem dados.</div>'; return; }
+  el.innerHTML = sorted.slice(0,15).map(p => {
+    const cor = p.dias <= 15 ? 'var(--red)' : p.dias <= 30 ? 'var(--yellow)' : p.dias <= 60 ? 'var(--orange)' : 'var(--green)';
+    const label = p.dias <= 7 ? '🔴 URGENTE' : p.dias <= 15 ? '🟠 Crítico' : p.dias <= 30 ? '🟡 Atenção' : '🟢 OK';
+    const meses = p.dias >= 30 ? `(${(p.dias/30).toFixed(1)} meses)` : '';
+    return `<div class="report-row">
       <div style="flex:1;min-width:0;">
         <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.nome}</div>
-        <div class="report-bar-wrap" style="margin-top:3px;">
-          <div class="report-bar" style="width:${Math.round(p.consumo/max*100)}%;background:var(--blue);"></div>
-        </div>
+        <div style="font-size:9px;color:var(--t3);">${p.forn} · Est: ${p.estoque} un · Consumo: ${p.consumo}/mês</div>
       </div>
-      <div class="report-val">${p.consumo.toFixed(1)} un/mês</div>
-    </div>`).join('') || '<div style="padding:16px;color:var(--t3);text-align:center;">Sem dados.</div>';
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:12px;font-weight:700;color:${cor};">${p.dias} dias ${meses}</div>
+        <div style="font-size:9px;color:${cor};">${label}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function renderRepCategoria() {
+function renderRepCategoria(prods) {
   const el = $('rep-categoria'); if (!el) return;
   const cats = {};
-  P.forEach(p => {
+  prods.forEach(p => {
     if (!cats[p.cat]) cats[p.cat] = { qtd:0, valor:0 };
-    cats[p.cat].qtd++;
-    cats[p.cat].valor += p.estoque * p.custo;
+    cats[p.cat].qtd++; cats[p.cat].valor += p.estoque * p.custo;
   });
-  const entries = Object.entries(cats).sort((a,b)=>b[1].valor-a[1].valor);
+  const entries = Object.entries(cats).sort((a,b) => b[1].valor - a[1].valor);
   const max = entries[0]?.[1].valor || 1;
   const cores = {Insumo:'var(--blue)',Peça:'var(--purple)',Consumível:'var(--yellow)'};
   el.innerHTML = entries.map(([cat,d]) => `
     <div class="report-row">
-      <div style="width:60px;font-size:11px;font-weight:500;color:${cores[cat]||'var(--t1)'};">${cat}</div>
+      <div style="width:70px;font-size:11px;font-weight:600;color:${cores[cat]||'var(--t1)'};">${cat}</div>
       <div style="flex:1;">
-        <div class="report-bar-wrap">
-          <div class="report-bar" style="width:${Math.round(d.valor/max*100)}%;background:${cores[cat]||'var(--blue)'};"></div>
-        </div>
-        <div style="font-size:10px;color:var(--t3);margin-top:2px;">${d.qtd} produtos</div>
+        <div class="report-bar-wrap"><div class="report-bar" style="width:${Math.round(d.valor/max*100)}%;background:${cores[cat]||'var(--blue)'};"></div></div>
+        <div style="font-size:10px;color:var(--t3);margin-top:2px;">${d.qtd} produto${d.qtd!==1?'s':''}</div>
       </div>
       <div class="report-val">${R(d.valor)}</div>
     </div>`).join('');
 }
 
-function renderRepFornecedor() {
-  const el = $('rep-fornecedor'); if (!el) return;
-  const forns = {};
-  P.forEach(p => {
-    if (!forns[p.forn]) forns[p.forn] = { itens:0, valor:0 };
-    forns[p.forn].itens++;
-    forns[p.forn].valor += p.estoque * p.custo;
-  });
-  const entries = Object.entries(forns).sort((a,b)=>b[1].valor-a[1].valor);
-  const max = entries[0]?.[1].valor || 1;
-  el.innerHTML = entries.map(([forn,d],i) => `
-    <div class="report-row">
-      <div class="report-rank">${i+1}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${forn}</div>
-        <div class="report-bar-wrap" style="margin-top:3px;">
-          <div class="report-bar" style="width:${Math.round(d.valor/max*100)}%;background:var(--green);"></div>
-        </div>
-        <div style="font-size:10px;color:var(--t3);margin-top:2px;">${d.itens} produtos</div>
-      </div>
-      <div class="report-val">${R(d.valor)}</div>
-    </div>`).join('');
-}
-
-function renderRepCriticos() {
+function renderRepCriticos(prods) {
   const el = $('rep-criticos'); if (!el) return;
-  const criticos = P.filter(p=>status(p)!=='OK')
-    .sort((a,b)=>(a.estoque/Math.max(1,a.min))-(b.estoque/Math.max(1,b.min)));
+  const criticos = prods.filter(p => status(p) !== 'OK')
+    .sort((a,b) => (a.estoque/Math.max(1,a.min)) - (b.estoque/Math.max(1,b.min)));
+  if (!criticos.length) {
+    el.innerHTML = '<div style="padding:16px;color:var(--green);text-align:center;">✓ Todos os itens em nível OK</div>';
+    return;
+  }
   el.innerHTML = criticos.map(p => {
     const st = status(p);
     const cor = st==='Crítico'?'var(--red)':'var(--yellow)';
     const sug = Math.max(1, (p.min*2)-p.estoque+Math.ceil(p.consumo));
-    return `<div class="report-row">
-      <div style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0;margin-top:2px;"></div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.nome}</div>
-        <div style="font-size:10px;color:var(--t3);">${p.cod} · ${p.forn} · Est: ${p.estoque} / Mín: ${p.min}</div>
+    const dias = p.consumo > 0 ? Math.round((p.estoque/p.consumo)*30) : '—';
+    return `<div class="report-row" style="flex-direction:column;align-items:stretch;gap:4px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0;"></div>
+        <div style="flex:1;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.nome}</div>
+        <div style="font-size:10px;font-weight:700;color:${cor};">${st}</div>
       </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:10px;font-weight:600;color:${cor};">${st}</div>
-        <div style="font-size:9px;color:var(--t3);">Sugerir: ${sug} un</div>
+      <div style="display:flex;gap:12px;padding-left:16px;font-size:10px;color:var(--t3);">
+        <span>Est: <b style="color:var(--t1);">${p.estoque}</b></span>
+        <span>Mín: ${p.min}</span>
+        <span>Duração: <b style="color:${cor};">${dias} dias</b></span>
+        <span style="margin-left:auto;color:var(--blue);">Sugerir: <b>${sug} un</b></span>
       </div>
     </div>`;
-  }).join('') || '<div style="padding:16px;color:var(--green);text-align:center;">✓ Todos os itens em nível OK</div>';
+  }).join('');
+}
+
+function renderRepConsumo(prods) {
+  const el = $('rep-consumo'); if (!el) return;
+  // Consumo real baseado em MOV (últimos 30 dias)
+  const hoje = new Date();
+  const limite = new Date(hoje - 30*24*60*60*1000);
+  const consumoReal = {};
+  MOV.filter(m => m.tipo === 'SAÍDA').forEach(m => {
+    const partes = m.data.split(' ')[0].split('/');
+    if (partes.length === 3) {
+      const data = new Date(+partes[2], +partes[1]-1, +partes[0]);
+      if (data >= limite) {
+        consumoReal[m.cod] = (consumoReal[m.cod] || 0) + m.qty;
+      }
+    }
+  });
+  const lista = prods.filter(p => p.consumo > 0)
+    .map(p => ({ ...p, consumoRealMes: consumoReal[p.cod] || 0 }))
+    .sort((a,b) => b.consumoRealMes - a.consumoRealMes || b.consumo - a.consumo)
+    .slice(0, 15);
+  if (!lista.length) { el.innerHTML = '<div style="padding:16px;color:var(--t3);text-align:center;">Sem dados de consumo.</div>'; return; }
+  const max = Math.max(...lista.map(p => Math.max(p.consumoRealMes, p.consumo)));
+  el.innerHTML = lista.map((p,i) => `
+    <div class="report-row">
+      <div class="report-rank">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.nome}</div>
+        <div style="display:flex;gap:6px;margin-top:3px;">
+          <div style="flex:1;height:4px;background:var(--blue-a);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:${Math.round(p.consumoRealMes/max*100)}%;background:var(--blue);border-radius:2px;"></div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:var(--t3);margin-top:2px;">Real (30d): ${p.consumoRealMes} un · Estimado: ${p.consumo}/mês</div>
+      </div>
+      <div class="report-val" style="min-width:70px;">${p.consumoRealMes>0?p.consumoRealMes+' un':p.consumo+' est.'}</div>
+    </div>`).join('');
 }
 
 function exportarRelatorioCSV(tipo) {
