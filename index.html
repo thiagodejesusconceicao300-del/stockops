@@ -2599,18 +2599,37 @@ function closeConfirm() {
   document.getElementById('overlay-confirm').classList.remove('open');
   _deleteCod = null;
 }
+// Conjunto de códigos sendo excluídos (proteção contra "produto ressuscitando")
+window._excluidosRecentes = window._excluidosRecentes || new Set();
+
 function deletarProduto() {
   if(!podeExcluir()){ toast('Acesso negado: apenas Admin pode excluir produtos.','error'); return; }
   if (!_deleteCod) return;
-  const p = P.find(x => x.cod === _deleteCod);
-  const nome = p ? p.nome : _deleteCod;
-  P = P.filter(x => x.cod !== _deleteCod);
+  const codExcluir = _deleteCod;
+  const p = P.find(x => x.cod === codExcluir);
+  if (!p) { closeConfirm(); return; }
+  const nome = p.nome;
+
+  // Marca o código como "recém excluído" para o listener ignorar
+  window._excluidosRecentes.add(codExcluir);
+  setTimeout(() => window._excluidosRecentes.delete(codExcluir), 5000);
+
+  // Remove localmente
+  P = P.filter(x => x.cod !== codExcluir);
   closeConfirm();
   populateFornSelect();
   renderAll();
   toast(`Produto "${nome}" removido.`, 'success');
-  registrarAudit('produto', `Produto excluído: ${nome}`, `Cód: ${_deleteCod}`, '🗑');
-  if (typeof fbExcluirProduto === 'function') fbExcluirProduto(_deleteCod);
+  registrarAudit('produto', `Produto excluído: ${nome}`, `Cód: ${codExcluir}`, '🗑');
+
+  // Sincroniza com Firebase
+  if (typeof fbExcluirProduto === 'function') {
+    fbExcluirProduto(codExcluir).catch(err => {
+      console.error('Falha ao excluir no Firebase:', err);
+      window._excluidosRecentes.delete(codExcluir);
+      toast(`Erro ao sincronizar exclusão. Recarregue a página.`, 'error');
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4227,11 +4246,18 @@ window.fbSalvarProduto = async function(p) {
   } catch(e) { console.error('Erro ao salvar produto:', e); setSyncStatus('error'); }
 };
 
-window.fbExcluirProduto = async function(cod) {
+ window.fbExcluirProduto = async function(cod) {
   try {
+    setSyncStatus('saving');
     await deleteDoc(doc(db, COL_PRODUTOS, cod));
     setSyncStatus('ok');
-  } catch(e) { console.error('Erro ao excluir produto:', e); setSyncStatus('error'); }
+    return true;
+  } catch(e) {
+    console.error('Erro ao excluir produto:', e);
+    setSyncStatus('error');
+    setTimeout(() => setSyncStatus('ok'), 2500);
+    throw e;
+  }
 };
 
 // ── SALVAR movimentação ───────────────────────────────────────
@@ -4326,18 +4352,27 @@ async function carregarDadosFirebase() {
 }
 
 // ── LISTENERS em tempo real ───────────────────────────────────
-onSnapshot(collection(db, COL_PRODUTOS), (snap) => {
+ onSnapshot(collection(db, COL_PRODUTOS), (snap) => {
+  // Ignora eventos da nossa própria escrita pendente
   if (snap.metadata.hasPendingWrites) return;
+
   const novosP = [];
-  snap.forEach(d => novosP.push(d.data()));
-  if (novosP.length > 0) {
-    P.length = 0;
-    novosP.forEach(p => P.push(p));
-    aplicarPrecosMimaki();
-    populateFornSelect();
-    renderAll();
-    setSyncStatus('ok');
-  }
+  snap.forEach(d => {
+    const data = d.data();
+    // Filtra produtos que acabamos de excluir (evita "ressuscitar")
+    if (window._excluidosRecentes && window._excluidosRecentes.has(data.cod)) return;
+    novosP.push(data);
+  });
+
+  // Não atualiza se vier vazio (provavelmente carregamento inicial)
+  if (novosP.length === 0) return;
+
+  P.length = 0;
+  novosP.forEach(p => P.push(p));
+  aplicarPrecosMimaki();
+  populateFornSelect();
+  renderAll();
+  setSyncStatus('ok');
 });
 
 onSnapshot(collection(db, COL_SOLIC), (snap) => {
