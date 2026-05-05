@@ -2993,10 +2993,26 @@ function onCartSearch() {
 function selectCartProduct(cod) {
   const p = P.find(x => x.cod === cod);
   if (!p) return;
-  document.getElementById('cart-search').value = `${p.cod} — ${p.nome}`;
-  document.getElementById('cart-forn').value   = p.forn;
-  document.getElementById('cart-custo').value  = p.custo || '';
-  document.getElementById('cart-search').dataset.selectedCod = cod;
+  // Marca como produto selecionado PRIMEIRO (mais importante)
+  const searchEl = document.getElementById('cart-search');
+  searchEl.value = `${p.cod} — ${p.nome}`;
+  searchEl.dataset.selectedCod = cod;
+
+  // Tenta selecionar fornecedor — se não existir nas opções, adiciona
+  const fornEl = document.getElementById('cart-forn');
+  if (fornEl && p.forn) {
+    let achou = false;
+    for (const opt of fornEl.options) {
+      if (opt.value === p.forn) { fornEl.value = p.forn; achou = true; break; }
+    }
+    if (!achou) {
+      for (const opt of fornEl.options) {
+        if (opt.value === 'Outro') { fornEl.value = 'Outro'; break; }
+      }
+    }
+  }
+
+  // Fecha o dropdown
   document.getElementById('cart-drop').classList.remove('open');
 }
 
