@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>StockOps — Gestão de Estoque</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   --bg:#0b0d12;--s1:#111318;--s2:#181b22;--s3:#1f232d;--s4:#272c38;
@@ -798,6 +800,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
             </select>
             <span style="font-size:10px;color:var(--t3);" id="est-count"></span>
             <button class="nav-btn primary" onclick="openEditModal(null)">＋ Novo Produto</button>
+            <button class="btn-export" onclick="exportarEstoquePDF()">📄 PDF</button>
           </div>
         </div>
         <!-- RESUMO INTELIGENTE DE FILTRO -->
@@ -840,6 +843,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
               <option value="90">Vencendo em 90 dias</option>
               <option value="9999">Todos com validade</option>
             </select>
+            <button class="btn-export" onclick="exportarValidadesPDF()">📄 PDF</button>
           </div>
         </div>
         <div class="tbl-wrap" style="flex:1;">
@@ -862,6 +866,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
         <div class="ph" style="flex-shrink:0;padding:10px 14px;">
           <span class="ph-title">🔔 Alertas de Estoque</span>
           <button class="nav-btn primary" style="margin-left:auto;" onclick="showPage('pedido')">Gerar pedido →</button>
+          <button class="btn-export" style="margin-left:8px;" onclick="exportarAlertasPDF()">📄 PDF</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;overflow:hidden;padding:0 14px 14px;">
           <div class="panel">
@@ -896,6 +901,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
             <button class="nav-btn success" style="font-size:12px;padding:6px 14px;" onclick="openModal('entrada')">＋ Registrar Entrada</button>
             <button class="nav-btn danger"  style="font-size:12px;padding:6px 14px;" onclick="openModal('saida')">－ Registrar Saída</button>
             <button class="nav-btn" style="background:var(--purple-a);border-color:rgba(155,113,232,.3);color:var(--purple);font-size:12px;padding:6px 14px;" onclick="showPage('solicitacoes')">📋 Ver Solicitações</button>
+            <button class="btn-export" onclick="exportarMovPDF()">📄 PDF</button>
           </div>
         </div>
         <!-- Legenda rápida -->
@@ -925,6 +931,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
           <div class="ph-right">
             <button class="nav-btn success" style="font-size:12px;padding:6px 14px;" onclick="openSolicModal('entrada')">＋ Pedir Entrada de produto</button>
             <button class="nav-btn danger"  style="font-size:12px;padding:6px 14px;" onclick="openSolicModal('saida')">－ Pedir Saída de produto</button>
+            <button class="btn-export" onclick="exportarSolicPDF()">📄 PDF</button>
           </div>
         </div>
         <!-- Explicação -->
@@ -1112,8 +1119,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
 
       <!-- ══ ANÁLISE ABC ════════════════════════════════════════ -->
       <div class="page" id="page-abc">
-        <div class="ph" style="flex-shrink:0;padding:10px 14px;"><span class="ph-title">📊 Análise ABC</span></div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 14px;flex-shrink:0;">
+<div class="ph" style="flex-shrink:0;padding:10px 14px;"><span class="ph-title">📊 Análise ABC</span><div class="ph-right"><button class="btn-export" onclick="exportarABCPDF()">📄 PDF</button></div></div>        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 14px;flex-shrink:0;">
           <div class="panel" style="border-color:rgba(224,72,74,.2);" id="abc-a-card"></div>
           <div class="panel" style="border-color:rgba(232,160,32,.2);" id="abc-b-card"></div>
           <div class="panel" style="border-color:rgba(45,184,122,.2);" id="abc-c-card"></div>
@@ -1131,6 +1137,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
         <div class="ph" style="flex-shrink:0;padding:10px 14px;">
           <span class="ph-title">📈 Previsão de Compra</span>
           <span class="ph-sub">Baseada no consumo médio mensal registrado</span>
+          <div class="ph-right"><button class="btn-export" onclick="exportarPrevisaoPDF()">📄 PDF</button></div>
         </div>
         <div class="tbl-wrap" style="flex:1;">
           <table>
@@ -1165,6 +1172,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
             </select>
             <input class="fi" type="text" id="hist-search" placeholder="🔍 Buscar nº pedido..." style="width:160px;" oninput="renderHistorico()">
             <button class="btn-export" onclick="exportarHistoricoCSV()">⬇ CSV</button>
+            <button class="btn-export" onclick="exportarHistoricoPDF()">📄 PDF</button>
           </div>
         </div>
         <div style="background:var(--blue-a);border-bottom:1px solid rgba(74,143,245,.15);padding:6px 14px;flex-shrink:0;">
@@ -1257,6 +1265,7 @@ td{padding:7px 10px;font-size:11.5px;white-space:nowrap;vertical-align:middle;}
               <option value="">Todos os usuários</option>
             </select>
             <button class="btn-export" onclick="exportarAuditCSV()">⬇ Exportar CSV</button>
+            <button class="btn-export" onclick="exportarAuditPDF()">📄 PDF</button>
             <button class="nav-btn danger" onclick="limparAuditoria()" style="font-size:10px;">🗑 Limpar</button>
           </div>
         </div>
@@ -4324,6 +4333,227 @@ function downloadCSV(nome, conteudo) {
   URL.revokeObjectURL(url);
   registrarAudit('sistema', `CSV exportado: ${nome}`, '', '⬇');
   toast('CSV exportado!', 'success');
+}
+
+  // ═══════════════════════════════════════════════════════════════
+// MÓDULO: EXPORTAÇÃO PDF
+// ═══════════════════════════════════════════════════════════════
+function exportarPDF(titulo, colunas, linhas, opcoes = {}) {
+  if (typeof window.jspdf === 'undefined') {
+    toast('Biblioteca PDF não carregou. Recarregue a página.', 'error');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: opcoes.orientacao || 'landscape',
+    unit: 'mm',
+    format: 'a4'
+  });
+  const pageW = doc.internal.pageSize.getWidth();
+  const dataHoje = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const usuario = CURRENT_USER ? CURRENT_USER.nome : 'Sistema';
+  // Cabeçalho
+  doc.setFillColor(74, 143, 245);
+  doc.rect(0, 0, pageW, 18, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('STOCKOPS', 10, 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('Gestão de Estoque · Impressão Digital', 10, 16);
+  doc.setFontSize(9);
+  doc.text(dataHoje, pageW - 10, 11, { align: 'right' });
+  doc.text(`Gerado por: ${usuario}`, pageW - 10, 16, { align: 'right' });
+  // Título do relatório
+  doc.setTextColor(30, 30, 30);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text(titulo, 10, 28);
+  // Resumo
+  if (opcoes.resumo) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(opcoes.resumo, 10, 34);
+  }
+  // Tabela
+  doc.autoTable({
+    head: [colunas],
+    body: linhas,
+    startY: opcoes.resumo ? 38 : 32,
+    theme: 'striped',
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [74, 143, 245], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+    margin: { left: 10, right: 10 }
+  });
+  // Rodapé
+  const totalPag = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPag; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.text(`Página ${i} de ${totalPag}`, pageW / 2, pageH - 6, { align: 'center' });
+    doc.text('StockOps · Sistema de Gestão', 10, pageH - 6);
+    doc.text('Confidencial', pageW - 10, pageH - 6, { align: 'right' });
+  }
+  // Nome do arquivo
+  const nomeArquivo = `stockops_${titulo.toLowerCase().replace(/[^a-z0-9]+/gi,'_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(nomeArquivo);
+  registrarAudit('sistema', `PDF exportado: ${titulo}`, `${linhas.length} registros`, '📄');
+  toast(`PDF "${titulo}" gerado!`, 'success');
+}
+
+// ── Exportar Estoque PDF ─────────────────────────────────────
+function exportarEstoquePDF() {
+  const s = (document.getElementById('f-search')?.value || '').toLowerCase();
+  const fc = document.getElementById('f-cat')?.value || '';
+  const fs = document.getElementById('f-status')?.value || '';
+  const ff = document.getElementById('f-forn')?.value || '';
+  const f = P.filter(p => {
+    if(fc&&p.cat!==fc) return false;
+    if(fs&&status(p)!==fs) return false;
+    if(ff&&p.forn!==ff) return false;
+    if(s&&!p.nome.toLowerCase().includes(s)&&!p.cod.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  const colunas = ['Código','Nome','Cat.','Fornecedor','Estoque','Mín.','ABC','Custo','Total','Status'];
+  const linhas = f.map(p => [
+    p.cod, p.nome, p.cat, p.forn, p.estoque, p.min, p.abc,
+    p.custo > 0 ? R(p.custo) : '—',
+    p.estoque*p.custo > 0 ? R(p.estoque*p.custo) : '—',
+    status(p)
+  ]);
+  const total = f.reduce((a,p)=>a+p.estoque*p.custo,0);
+  exportarPDF('Estoque Completo', colunas, linhas, {
+    resumo: `${f.length} produtos · ${f.reduce((a,p)=>a+p.estoque,0)} unidades · Valor total: ${R(total)}`
+  });
+}
+
+// ── Exportar Validades PDF ───────────────────────────────────
+function exportarValidadesPDF() {
+  const dias = parseInt(document.getElementById('fv-filter')?.value || '30');
+  const rows = [];
+  P.forEach(p => (p.val||[]).forEach(v => { const d = diasAteVal(v); if (d <= dias) rows.push({p,v,d}); }));
+  rows.sort((a,b) => a.d - b.d);
+  const colunas = ['Código','Nome','Fornecedor','Estoque','Validade','Dias','Custo','Total','Status'];
+  const linhas = rows.map(r => [
+    r.p.cod, r.p.nome, r.p.forn, r.p.estoque, r.v,
+    r.d < 0 ? `Vencida ${Math.abs(r.d)}d` : r.d + 'd',
+    r.p.custo > 0 ? R(r.p.custo) : '—',
+    r.p.custo*r.p.estoque > 0 ? R(r.p.custo*r.p.estoque) : '—',
+    r.d < 0 ? 'Vencida' : r.d <= 7 ? 'Urgente' : r.d <= 30 ? 'Próxima' : 'Atenção'
+  ]);
+  exportarPDF(`Controle de Validades (${dias} dias)`, colunas, linhas, {
+    resumo: `${rows.length} unidades com validade em até ${dias} dias`
+  });
+}
+
+// ── Exportar Alertas PDF ─────────────────────────────────────
+function exportarAlertasPDF() {
+  const crits = P.filter(p => status(p) === 'Crítico');
+  const warns = P.filter(p => status(p) === 'Alerta');
+  const colunas = ['Status','Código','Nome','Fornecedor','Estoque','Mín.','Repor'];
+  const linhas = [
+    ...crits.map(p => ['🔴 Crítico', p.cod, p.nome, p.forn, p.estoque, p.min, Math.max(0,p.repo-p.estoque)]),
+    ...warns.map(p => ['🟡 Alerta', p.cod, p.nome, p.forn, p.estoque, p.min, Math.max(0,p.repo-p.estoque)])
+  ];
+  exportarPDF('Alertas de Estoque', colunas, linhas, {
+    resumo: `${crits.length} críticos · ${warns.length} em alerta`
+  });
+}
+
+// ── Exportar Movimentações PDF ───────────────────────────────
+function exportarMovPDF() {
+  const colunas = ['Data/Hora','Produto','Cód.','Tipo','Qtd','Custo Un.','Total','Responsável','Obs'];
+  const linhas = [...MOV].reverse().map(m => [
+    m.data, m.nome, m.cod, m.tipo, m.qty,
+    m.custo ? R(m.custo) : '—',
+    m.custo ? R(m.custo*m.qty) : '—',
+    m.resp || '—', m.obs || '—'
+  ]);
+  exportarPDF('Movimentações de Estoque', colunas, linhas, {
+    resumo: `${MOV.length} movimentações registradas`
+  });
+}
+
+// ── Exportar Solicitações PDF ────────────────────────────────
+function exportarSolicPDF() {
+  const colunas = ['Data','Produto','Tipo','Qtd','Solicitante','Obs','Status'];
+  const linhas = [...SOLIC].reverse().map(s => [
+    s.data, s.nome + (s.livre?' (livre)':''), s.tipo, s.qty, s.resp, s.obs || '—',
+    s.status === 'pendente' ? '⏳ Pendente' : s.status === 'aprovado' ? '✅ Aprovado' : '❌ Rejeitado'
+  ]);
+  exportarPDF('Solicitações de Movimentação', colunas, linhas, {
+    resumo: `${SOLIC.length} solicitações no histórico`
+  });
+}
+
+// ── Exportar Histórico de Pedidos PDF ────────────────────────
+function exportarHistoricoPDF() {
+  const colunas = ['Nº Pedido','Data','Solicitante','Itens','Fornecedores','Valor Total','Status'];
+  const linhas = PEDIDOS.map(p => [
+    p.num, p.data, p.solicitante, p.itens.length,
+    p.fornecedores.join(', ') || '—',
+    p.total > 0 ? R(p.total) : '—',
+    p.status === 'enviado' ? '📤 Enviado' : p.status === 'recebido' ? '✅ Recebido' : '❌ Cancelado'
+  ]);
+  exportarPDF('Histórico de Pedidos de Compra', colunas, linhas, {
+    resumo: `${PEDIDOS.length} pedidos no histórico`
+  });
+}
+
+// ── Exportar Análise ABC PDF ─────────────────────────────────
+function exportarABCPDF() {
+  const sorted = [...P].map(p => ({...p, vt: p.estoque*p.custo})).sort((a,b) => b.vt - a.vt);
+  const tv = sorted.reduce((a,p)=>a+p.vt,0);
+  let acum = 0;
+  sorted.forEach(p => { acum += p.vt; p.pct = tv>0?p.vt/tv*100:0; p.acumPct = tv>0?acum/tv*100:0; p.abc2 = p.acumPct<=80?'A':p.acumPct<=95?'B':'C'; });
+  const colunas = ['ABC','Código','Nome','Cat.','Estoque','Custo Un.','Valor Total','% Portfólio'];
+  const linhas = sorted.map(p => [
+    p.abc2, p.cod, p.nome, p.cat, p.estoque,
+    p.custo ? R(p.custo) : '—',
+    p.vt ? R(p.vt) : '—',
+    p.pct.toFixed(1) + '%'
+  ]);
+  exportarPDF('Análise ABC do Estoque', colunas, linhas, {
+    resumo: `${sorted.length} produtos · Valor total: ${R(tv)}`
+  });
+}
+
+// ── Exportar Previsão de Compra PDF ──────────────────────────
+function exportarPrevisaoPDF() {
+  const sorted = [...P].map(p => ({...p, d: diasEst(p)})).filter(p => p.d < 180).sort((a,b) => a.d - b.d);
+  const colunas = ['Código','Nome','Cat.','Estoque','Consumo/mês','Dias Rest.','Ruptura Est.','Sugestão','Urgência'];
+  const linhas = sorted.map(p => {
+    const rupDate = new Date(HOJE.getTime() + p.d*864e5);
+    const sug = Math.max(1, (p.min*2) - p.estoque + Math.ceil(p.consumo));
+    const urg = p.d <= 7 ? 'URGENTE' : p.d <= 30 ? 'Alta' : p.d <= 60 ? 'Média' : 'Baixa';
+    return [p.cod, p.nome, p.cat, p.estoque, p.consumo.toFixed(1),
+            p.d >= 999 ? '—' : p.d + 'd',
+            p.d >= 999 ? '—' : rupDate.toLocaleDateString('pt-BR'),
+            sug, urg];
+  });
+  exportarPDF('Previsão de Compra', colunas, linhas, {
+    resumo: `${sorted.length} produtos com previsão de ruptura em 180 dias`
+  });
+}
+
+// ── Exportar Auditoria PDF ───────────────────────────────────
+function exportarAuditPDF() {
+  const ft = document.getElementById('audit-filter-tipo')?.value || '';
+  const fu = document.getElementById('audit-filter-user')?.value || '';
+  const f = AUDIT.filter(a => (!ft||a.tipo===ft) && (!fu||a.user===fu));
+  const colunas = ['Data/Hora','Usuário','Perfil','Ação','Detalhe','Tipo'];
+  const linhas = f.map(a => [
+    a.ts, a.user, ROLE_LABELS[a.role]||a.role, a.acao, a.detalhe || '—', a.tipo
+  ]);
+  exportarPDF('Histórico de Auditoria', colunas, linhas, {
+    resumo: `${f.length} ações registradas`
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
