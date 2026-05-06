@@ -2597,8 +2597,16 @@ function openEditModal(cod) {
     const p = P.find(x => x.cod === cod);
     if (!p) return;
     document.getElementById('ep-cod').value = p.cod;
-    document.getElementById('ep-cod').setAttribute('readonly', 'readonly');
-    document.getElementById('ep-cod-hint').textContent = 'O código não pode ser alterado.';
+   // Apenas admin pode editar o código
+    if (CURRENT_USER && CURRENT_USER.role === 'admin') {
+      document.getElementById('ep-cod').removeAttribute('readonly');
+      document.getElementById('ep-cod-hint').innerHTML = '👑 Como admin, você pode editar o código. <b>Atenção:</b> isso pode quebrar referências em movimentações antigas.';
+      document.getElementById('ep-cod-hint').style.color = 'var(--yellow)';
+    } else {
+      document.getElementById('ep-cod').setAttribute('readonly', 'readonly');
+      document.getElementById('ep-cod-hint').textContent = 'O código não pode ser alterado.';
+      document.getElementById('ep-cod-hint').style.color = '';
+    }
     document.getElementById('ep-nome').value = p.nome;
     document.getElementById('ep-cat').value = p.cat;
     document.getElementById('ep-forn').value = p.forn;
